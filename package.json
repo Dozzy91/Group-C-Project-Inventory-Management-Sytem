@@ -1,0 +1,19 @@
+{
+  "name": "inventory-management-system",
+  "version": "1.0.0",
+  "description": "This helps clients manage their products, stocks, and also their store",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dozzy91/Group-C-Project-Inventory-Management-Sytem.git"
+  },
+  "author": "Group C",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Dozzy91/Group-C-Project-Inventory-Management-Sytem/issues"
+  },
+  "homepage": "https://github.com/Dozzy91/Group-C-Project-Inventory-Management-Sytem#readme"
+}
