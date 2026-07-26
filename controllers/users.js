@@ -30,11 +30,8 @@ const createUser = (req, res) => {
     return;
   }
 
-  // read the db/file to check if a student exists
   const usersDB = readFromDatabase(pathToUsersDb);
-  console.log("djndfd", usersDB);
 
-  //check if student exists
   const storeExist = usersDB.find((user) => user.storeName === data.storeName);
 
   if (storeExist) {
@@ -55,7 +52,6 @@ const createUser = (req, res) => {
     id: generatedId,
   };
 
-  // else add student to db
   usersDB.push(userObject);
 
   try {
@@ -73,4 +69,140 @@ const createUser = (req, res) => {
   }
 };
 
-export { createUser };
+// get all users
+const getAllUsers = (req, res) => {
+  try {
+    const users = readFromDatabase(pathToUsersDb);
+    res.send({
+      statusCode: 200,
+      data: users,
+      totalUsers: users.length,
+    });
+  } catch (err) {
+    console.log(err);
+    res.send({
+      statusCode: 500,
+      message: "Failed to fetch users",
+    });
+  }
+};
+
+// search for a user
+const searchUser =  (req, res) => {
+  const userId = Number(req.params.id);
+
+  const users = readFromDatabase(pathToUsersDb);
+
+  const user = users.find(
+    (user) => user.id === userId,
+  );
+
+  if (!user) {
+    res.send({
+      statusCode: 404,
+      message: "User not found",
+    });
+
+    return;
+  }
+
+  res.send({
+      statusCode: 200,
+      user: user,
+    });
+};
+
+  // edit user
+const editUser =  (req, res) => {
+  const userId = Number(req.params.id);
+
+  const users = readFromDatabase(pathToUsersDb);
+
+  const user = users.find(
+    (user) => user.id === userId,
+  );
+
+  if (!user) {
+    res.send({
+      statusCode: 404,
+      message: "User not found",
+    });
+
+    return;
+  }
+
+  
+  if(req.body.userName && req.body.password ){
+    user.userName = req.body.userName;
+    user.password = req.body.password;
+  }
+  else if (req.body.userName) {
+    user.userName = req.body.userName;
+  } else if (req.body.password) {
+    user.password = req.body.password;
+  } else {
+    res.send({
+      statusCode: 400,
+      message: "No valid fields to update",
+    });
+
+    return;
+  }
+
+  // Save the updated student data back to the database
+  try {
+    writeToDatabase(users, pathToUsersDb)
+
+    res.send({
+      statusCode: 200,
+      message: "User updated successfully",
+      data: user,
+    });
+  } catch (err) {
+    console.log(err);
+    res.send({
+      statusCode: 500,
+      message: "Failed to update user",
+    });
+  }
+};
+
+
+// delete user
+const deleteUser = (req, res) => {
+  const userId = Number(req.params.id);
+  
+  const users = readFromDatabase(pathToUsersDb);
+
+  const userIndex = users.findIndex(
+    (user) => user.id === userId,
+  );
+
+  if (userIndex === -1) {
+    res.send({
+      statusCode: 404,
+      message: "No record found",
+    });
+
+    return;
+  };
+
+  // strip out the user by deleting them using splice
+  users.splice(userIndex, 1);
+
+  try {
+    writeToDatabase(users, pathToUsersDb)
+
+    res.send({
+      statusCode: 200,
+      message: "User deleted successfully",
+    });
+  } catch (error) {
+    res.send({
+      statusCode: 500,
+      message: "Failed to delete user",
+    });
+  }
+};
+
+export { createUser, getAllUsers, searchUser, editUser, deleteUser };
