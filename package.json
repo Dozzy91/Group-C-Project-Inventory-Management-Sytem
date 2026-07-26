@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/Dozzy91/Group-C-Project-Inventory-Management-Sytem/issues"
   },
-  "homepage": "https://github.com/Dozzy91/Group-C-Project-Inventory-Management-Sytem#readme"
+  "homepage": "https://github.com/Dozzy91/Group-C-Project-Inventory-Management-Sytem#readme",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
 }
