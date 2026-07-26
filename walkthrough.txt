@@ -1,0 +1,9 @@
+controllers: This folder is where your code logic and functionality will be.
+
+cata: This folder will house your json data, it will serve as your database. Here
+
+middleware: As the name implies, this folder will house youe middleware, from here, you can export the code and use it as a module
+
+routes: Instead of have the routes in the same place as the server.js file, we should add links to our codes here
+
+index.js: Everything will be imported here and run, think of this as the fondation for our code.
