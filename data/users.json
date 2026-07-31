@@ -2,13 +2,18 @@
   {
     "userName": "Uzoamaka Mmmmma",
     "password": "larryturnbuckle",
-    "storeName": "Emeka's Ultimate Stores",
-    "id": 1
+    "id": 1,
+    "store": [
+      {
+        "storeId": 1,
+        "storeName": "Chuncky Kitten"
+      }
+    ]
   },
   {
     "userName": "Chuncky Kitten",
     "password": "cbxcjbc",
-    "storeName": "Uzo's corture",
-    "id": 2
+    "id": 2,
+    "store": []
   }
 ]

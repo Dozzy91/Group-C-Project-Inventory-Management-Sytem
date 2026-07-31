@@ -34,22 +34,22 @@ const createUser = (req, res) => {
 
   const storeExist = usersDB.find((user) => user.storeName === data.storeName);
 
-  if (storeExist) {
-    res.send({
-      statusCode: 400,
-      message: "This store name is already taken.",
-    });
+//   if (storeExist) {
+//     res.send({
+//       statusCode: 400,
+//       message: "This store name is already taken.",
+//     });
 
-    return;
-  }
+//     return;
+//   }
 
   const generatedId = userIdGenerator(usersDB);
 
   const userObject = {
+    id: generatedId,
     userName: data.userName,
     password: data.password,
-    storeName: data.storeName,
-    id: generatedId,
+    store: new Array(),
   };
 
   usersDB.push(userObject);
