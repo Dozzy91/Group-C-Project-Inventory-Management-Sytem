@@ -1,6 +1,7 @@
 import http from "http";
 import express from "express";
 import userRoute from "./routes/user.js";
+import stockRoute from "./routes/stock.js";
 
 const PORT = 3000;
 
@@ -13,6 +14,8 @@ app.get("/", (req, res) => {
 });
 
 app.use("/user", userRoute);
+app.use("/inventory", stockRoute);
+
 
 http.createServer(app).listen(PORT, "127.0.0.1", () => {
   console.log("Server running on port: " + PORT);

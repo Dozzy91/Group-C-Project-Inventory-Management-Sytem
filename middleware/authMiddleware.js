@@ -4,13 +4,12 @@ import { readFromDatabase } from "../utils/fileOperations.js";
 const pathToUsersDb = new URL("../data/users.json", import.meta.url);
 
 const authMiddleware = (req, res, next) => {
-
-  const {id , password} = req.params;
+  const { id, password } = req.params;
 
   if (!id || !password) {
     res.send({
       statusCode: 404,
-      message: "Credentialssss Missingggg",
+      message: "Credentials Missing",
     });
 
     return;
