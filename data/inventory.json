@@ -1,0 +1,32 @@
+[
+  {
+    "productId": "PROD-1754012345678",
+    "productName": "HP Laptop",
+    "category": "Electronics",
+    "price": 350000,
+    "quantity": 10,
+    "description": "Intel Core i7 Laptop",
+    "createdAt": "2026-07-31T12:30:00.000Z",
+    "updatedAt": "2026-07-31T12:30:00.000Z"
+  },
+  {
+    "productId": "PROD-1785456866527-517",
+    "productName": "Rice",
+    "category": "Food",
+    "price": 25000,
+    "quantity": 20,
+    "description": "50kg Bag",
+    "createdAt": "2026-07-31T00:14:26.527Z",
+    "updatedAt": "2026-07-31T00:14:26.527Z"
+  },
+  {
+    "productId": "PROD-1785456926290-755",
+    "productName": "Beans",
+    "category": "Food",
+    "price": 25000,
+    "quantity": 30,
+    "description": "70kg Bag",
+    "createdAt": "2026-07-31T00:15:26.290Z",
+    "updatedAt": "2026-07-31T00:15:26.290Z"
+  }
+]
