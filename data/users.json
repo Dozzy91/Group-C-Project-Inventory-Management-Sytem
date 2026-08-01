@@ -1,0 +1,19 @@
+[
+  {
+    "userName": "Uzoamaka Mmmmma",
+    "password": "larryturnbuckle",
+    "id": 1,
+    "store": [
+      {
+        "storeId": 1,
+        "storeName": "Chuncky Kitten"
+      }
+    ]
+  },
+  {
+    "userName": "Chuncky Kitten",
+    "password": "cbxcjbc",
+    "id": 2,
+    "store": []
+  }
+]

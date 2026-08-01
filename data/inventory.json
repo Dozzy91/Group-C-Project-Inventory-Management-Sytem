@@ -1,0 +1,17 @@
+[
+  {
+    "storeId": 1,
+    "storeName": "Chuncky Kitten",
+    "items": [
+      {
+        "id": "zeYDEobMtgMwFLSjaaaDU",
+        "itemName": "Beans",
+        "category": "Food",
+        "price": 2500,
+        "quantity": 70,
+        "supplier": "Umaru Mills",
+        "createdAt": "2026-07-28"
+      }
+    ]
+  }
+]
