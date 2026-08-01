@@ -1,0 +1,13 @@
+{
+  "name": "search-api-module",
+  "version": "1.0.0",
+  "description": "Standard modular and beginner friendly Express.js Search API module",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
