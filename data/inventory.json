@@ -11,6 +11,16 @@
         "quantity": 70,
         "supplier": "Umaru Mills",
         "createdAt": "2026-07-28"
+      },
+      {
+        "id": "-4dA7EBUCpBFglCDMRUOi",
+        "itemName": "Garri",
+        "category": "Food",
+        "price": 4500,
+        "quantity": -8,
+        "supplier": "Umaru Mills",
+        "createdAt": "2026-08-04",
+        "updatedAt": "2026-08-04"
       }
     ]
   }

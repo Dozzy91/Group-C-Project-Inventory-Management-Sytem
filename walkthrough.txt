@@ -6,4 +6,32 @@ middleware: As the name implies, this folder will house youe middleware, from he
 
 routes: Instead of have the routes in the same place as the server.js file, we should add links to our codes here
 
-index.js: Everything will be imported here and run, think of this as the fondation for our code.
+index.js: Everything will be imported here and run, think of this as the fondation for our app.
+
+::::::::: ROUTES :::::::::::::
+
+Users:::
+
+Create a user: Post - http://127.0.0.1:3000/user/create;
+Get ALl Users: Get - http://127.0.0.1:3000/user/get;
+Search or get a single user: Get - http://127.0.0.1:3000/user/search/:id;
+Edit a user: Patch - http://127.0.0.1:3000/user/edit/:id/:password
+Delete a user: Delete - http://127.0.0.1:3000/user/delete/:id/:password
+
+Store:::
+
+Get All Stores: Get - http://127.0.0.1:3000/inventory/get_all_stores
+Get A Single Store: - Get - http://127.0.0.1:3000/inventory/get_store/:storeName
+Search For A Store: Get - http://127.0.0.1:3000/inventory/search_store/:query
+Create A Store: Post - http://127.0.0.1:3000/inventory/create_store/:id/:password
+Edit A Store: Patch - http://127.0.0.1:3000/inventory/edit_store/:id/:password/:oldStoreName
+Delete A Store: Delete - http://127.0.0.1:3000/inventory/delete_store/:id/:password/:storeName
+
+
+Items:::
+
+Get All Store Items: Get - http://127.0.0.1:3000/inventory/get_all_store_items/:storeName
+Search For An Item: Get - http://127.0.0.1:3000/inventory/search_item/:storeName/:itemName
+Create An Item: Post - http://127.0.0.1:3000/inventory/create_item/:id/:password
+Edit An Item: Patch - http://127.0.0.1:3000/inventory/edit_item/:id/:password/:storeName/:itemId
+Delete An Item: Delete - http://127.0.0.1:3000/inventory/delete_item/:id/:password/:storeName/:itemId
