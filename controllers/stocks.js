@@ -85,7 +85,6 @@ const createStore = (req, res) => {
     ...userStoreObject,
     items: new Array(),
   };
-  console.log(usersDb);
 
   const user = usersDb.find(
     (user) => user.id === Number(id) && user.password === password,
@@ -184,10 +183,10 @@ const editStore = (req, res) => {
   const usersDb = readFromDatabase(pathToUsersDb);
   const inventoryDb = readFromDatabase(pathToInventoryDb);
 
-  //   make sure user only edits only their store
+  //   make sure user edits only their store
   const isValid = usersDb.find(
     (connection) =>
-      connection.store.some((store) => store.storeName === oldStoreName) &&
+      connection.store.some((store) => store.storeName.toLowerCase() === oldStoreName.toLowerCase()) &&
       connection.password === password &&
       connection.id === Number(id),
   );
@@ -203,7 +202,7 @@ const editStore = (req, res) => {
 
   // check if store exists
   const storeExists = inventoryDb.find(
-    (store) => store.storeName === oldStoreName,
+    (store) => store.storeName.toLowerCase() === oldStoreName.toLowerCase(),
   );
 
   if (!storeExists) {
@@ -214,8 +213,8 @@ const editStore = (req, res) => {
     return;
   }
 
-  // check if new name matches an exisiting store because, we can't have two store bearing the same name
-  const duplicate = inventoryDb.find((store) => store.storeName === storeName);
+  // check if new name matches an exisiting store because, we can't have two stores bearing the same name
+  const duplicate = inventoryDb.find((store) => store.storeName.toLowerCase() === storeName.toLowerCase());
 
   if (duplicate) {
     res.send({
@@ -227,20 +226,20 @@ const editStore = (req, res) => {
 
   // get the store name from the user store and ready it for manipulation
   const userStore = usersDb.find((query) =>
-    query.store.some((store) => store.storeName === oldStoreName),
+    query.store.some((store) => store.storeName.toLowerCase() === oldStoreName.toLowerCase()),
   );
 
   if (!userStore) {
     res.send({
       statusCode: 404,
-      message: "Store not foundddd",
+      message: "Store not found",
     });
 
     return;
   }
 
   const storeToUpdate = userStore.store.find(
-    (store) => store.storeName === oldStoreName,
+    (store) => store.storeName.toLowerCase === oldStoreName.toLowerCase(),
   );
 
   if (!storeToUpdate) {
@@ -280,7 +279,7 @@ const deleteStore = (req, res) => {
   const usersDb = readFromDatabase(pathToUsersDb);
   const inventoryDb = readFromDatabase(pathToInventoryDb);
 
-  const storeExist = inventoryDb.find((store) => store.storeName === storeName);
+  const storeExist = inventoryDb.find((store) => store.storeName.toLowerCase() === storeName.toLowerCase());
 
   if (!storeExist) {
     res.send({
@@ -293,7 +292,7 @@ const deleteStore = (req, res) => {
   //   make sure user only edits only their store
   const isValid = usersDb.find(
     (connection) =>
-      connection.store.some((store) => store.storeName === storeName) &&
+      connection.store.some((store) => store.storeName.toLowerCase() === storeName.toLowerCase()) &&
       connection.password === password &&
       connection.id === Number(id),
   );
@@ -308,28 +307,29 @@ const deleteStore = (req, res) => {
   }
 
   isValid.store = isValid.store.filter(
-    (store) => store.storeName !== storeName,
+    (store) => store.storeName.toLowerCase() !== storeName.toLowerCase(),
   );
 
   const updatedInventory = inventoryDb.filter(
-    (store) => store.storeName !== storeName,
+    (store) => store.storeName.toLowerCase() !== storeName.toLowerCase(),
   );
 
   try {
     writeToDatabase(usersDb, pathToUsersDb);
     writeToDatabase(updatedInventory, pathToInventoryDb);
+
+    res.send({
+    statusCode: 200,
+    message: "Store deleted successfully",
+  });
+
   } catch (err) {
     console.log(err);
     res.send({
       statusCode: 500,
       message: "An error occurred",
     });
-  }
-
-  res.send({
-    statusCode: 200,
-    message: "Store deleted successfully",
-  });
+  };
 };
 
 // items
@@ -353,7 +353,7 @@ const createItem = (req, res) => {
 
   const isValid = usersDb.find(
     (connection) =>
-      connection.store.some((store) => store.storeName === data.storeName) &&
+      connection.store.some((store) => store.storeName.toLowerCase() === data.storeName.toLowerCase()) &&
       connection.password === password &&
       connection.id === Number(id),
   );
@@ -367,7 +367,7 @@ const createItem = (req, res) => {
     return;
   }
 
-  const store = stocksDb.find((store) => store.storeName === data.storeName);
+  const store = stocksDb.find((store) => store.storeName.toLowerCase() === data.storeName.toLowerCase());
 
   if (!store) {
     res.send({
@@ -379,7 +379,7 @@ const createItem = (req, res) => {
   }
 
   const itemExists = store.items.find(
-    (item) => item.itemName === data.itemName,
+    (item) => item.itemName.toLowerCase() === data.itemName.toLowerCase(),
   );
 
   if (itemExists) {
@@ -401,6 +401,22 @@ const createItem = (req, res) => {
     res.send({
       statusCode: 400,
       message: "Please fill all fields",
+    });
+
+    return;
+  }
+
+  if (data.quantity < 0) {
+    res.send({
+      statusCode: 400,
+      message: "Quantity cannot be lower than zero"
+    });
+
+    return;
+  } else if (data.price < 0) {
+    res.send({
+      statusCode: 400,
+      message: "Price cannot be lower than zero"
     });
 
     return;
@@ -438,7 +454,7 @@ const getAllStoreItems = (req, res) => {
 
   const inventory = readFromDatabase(pathToInventoryDb);
 
-  const store = inventory.find((store) => store.storeName === storeName);
+  const store = inventory.find((store) => store.storeName.toLowerCase() === storeName.toLowerCase());
 
   if (!store) {
     return res.send({
@@ -458,7 +474,7 @@ const searchItem = (req, res) => {
 
   const inventory = readFromDatabase(pathToInventoryDb);
 
-  const store = inventory.find((store) => store.storeName === storeName);
+  const store = inventory.find((store) => store.storeName.toLowerCase() === storeName.toLowerCase());
 
   if (!store) {
     res.send({
@@ -503,7 +519,7 @@ const editItem = (req, res) => {
   const inventory = readFromDatabase(pathToInventoryDb);
   const usersDb = readFromDatabase(pathToUsersDb);
 
-  const store = inventory.find((store) => store.storeName === storeName);
+  const store = inventory.find((store) => store.storeName.toLowerCase() === storeName.toLowerCase());
 
   if (!store) {
     res.send({
@@ -516,7 +532,7 @@ const editItem = (req, res) => {
 
   const isValid = usersDb.find(
     (connection) =>
-      connection.store.some((store) => store.storeName === storeName) &&
+      connection.store.some((store) => store.storeName.toLowerCase() === storeName.toLowerCase()) &&
       connection.password === password &&
       connection.id === Number(id),
   );
@@ -536,6 +552,22 @@ const editItem = (req, res) => {
     res.send({
       statusCode: 404,
       message: "Item not found",
+    });
+
+    return;
+  }
+
+  if (req.body.quantity && req.body.quantity < 0) {
+    res.send({
+      statusCode: 400,
+      message: "Quantity cannot be lower than zero"
+    });
+
+    return;
+  } else if (req.body.price && req.body.price < 0) {
+    res.send({
+      statusCode: 400,
+      message: "Price cannot be lower than zero"
     });
 
     return;
@@ -572,7 +604,7 @@ const deleteItem = (req, res) => {
 
   const isAuthorized = usersDb.find(
     (connection) =>
-      connection.store.some((store) => store.storeName === storeName) &&
+      connection.store.some((store) => store.storeName.toLowerCase() === storeName.toLowerCase()) &&
       connection.password === password &&
       connection.id === Number(id),
   );
@@ -588,7 +620,7 @@ const deleteItem = (req, res) => {
 
   const inventory = readFromDatabase(pathToInventoryDb);
 
-  const store = inventory.find((store) => store.storeName === storeName);
+  const store = inventory.find((store) => store.storeName.toLowerCase() === storeName.toLowerCase());
 
   if (!store) {
     res.send({

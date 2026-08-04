@@ -32,7 +32,7 @@ const createUser = (req, res) => {
 
   const usersDB = readFromDatabase(pathToUsersDb);
 
-  const storeExist = usersDB.find((user) => user.storeName === data.storeName);
+  // const storeExist = usersDB.find((user) => user.storeName === data.storeName);
 
 //   if (storeExist) {
 //     res.send({
@@ -108,7 +108,7 @@ const searchUser =  (req, res) => {
 
   res.send({
       statusCode: 200,
-      user: user,
+      user: user
     });
 };
 
