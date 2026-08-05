@@ -40,7 +40,7 @@ export function createProduct(req, res) {
         if (price <= 0) {
             return res.status(400).json({
                 success: false,
-                message: "Price must be greater than zero."
+                message: "Quantity cannot be less than zero."
             });
         }
 
@@ -48,7 +48,7 @@ export function createProduct(req, res) {
         if (quantity < 0) {
             return res.status(400).json({
                 success: false,
-                message: "Quantity cannot be negative."
+                message: "Quantity cannot be less than zero."
             });
         }
 
