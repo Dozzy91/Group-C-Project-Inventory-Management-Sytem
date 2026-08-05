@@ -2,6 +2,7 @@ import { writeToDatabase, readFromDatabase } from "../utils/fileOperations.js";
 import path from "path";
 
 const pathToUsersDb = new URL("../data/users.json", import.meta.url);
+const pathToInventoryDb = new URL("../data/inventory.json", import.meta.url);
 
 function userIdGenerator(userArray) {
   const userId =
@@ -112,7 +113,65 @@ const searchUser =  (req, res) => {
     });
 };
 
-  // edit user
+// Get all user info
+
+const getAllUserInfo = (req, res) => {
+  const {id, userName} = req.params;
+
+  const users = readFromDatabase(pathToUsersDb);
+  const stores = readFromDatabase(pathToInventoryDb);
+
+  const user = users.find(
+    (user) => user.id === Number(id) && user.userName.toLowerCase() === userName.toLowerCase(),
+  );
+
+  if (!user) {
+    res.send({
+      statusCode: 404,
+      message: "User not found",
+    });
+
+    return;
+  }
+
+  const store = stores.find(
+    (store) => store.storeId === user.storeId
+  );
+
+  const storeItems = user.store.map((userStore) => {
+    const fullStore = stores.find(
+      (store) => store.storeId === userStore.storeId
+    );
+
+    return fullStore;
+  });
+
+  console.log(storeItems);
+
+  if(!storeItems) {
+    res.send({
+      statusCode: 400,
+      message: "User has no store yet"
+    });
+
+    return;
+  }
+
+  // destructuring and spreading the user object without the password
+  const {password, ...userObject} = user
+  const response = {
+    ...userObject,
+    store: storeItems
+  };
+
+  res.send({
+    statusCode: 200,
+    data: response
+  });
+
+};
+
+// edit user
 const editUser =  (req, res) => {
   const userId = Number(req.params.id);
 
@@ -205,4 +264,4 @@ const deleteUser = (req, res) => {
   }
 };
 
-export { createUser, getAllUsers, searchUser, editUser, deleteUser };
+export { createUser, getAllUsers, searchUser, editUser, deleteUser, getAllUserInfo };

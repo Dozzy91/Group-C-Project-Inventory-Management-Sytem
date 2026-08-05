@@ -239,7 +239,7 @@ const editStore = (req, res) => {
   }
 
   const storeToUpdate = userStore.store.find(
-    (store) => store.storeName.toLowerCase === oldStoreName.toLowerCase(),
+    (store) => store.storeName.toLowerCase() === oldStoreName.toLowerCase(),
   );
 
   if (!storeToUpdate) {

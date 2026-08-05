@@ -17,11 +17,16 @@
         "itemName": "Garri",
         "category": "Food",
         "price": 4500,
-        "quantity": -8,
+        "quantity": 20,
         "supplier": "Umaru Mills",
         "createdAt": "2026-08-04",
-        "updatedAt": "2026-08-04"
+        "updatedAt": "2026-08-05"
       }
     ]
+  },
+  {
+    "storeId": 2,
+    "storeName": "Chika's Automobile Store",
+    "items": []
   }
 ]
