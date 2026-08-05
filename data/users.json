@@ -7,6 +7,10 @@
       {
         "storeId": 1,
         "storeName": "Chuncky Kitten"
+      },
+      {
+        "storeId": 2,
+        "storeName": "Chika's Automobile Store"
       }
     ]
   },
