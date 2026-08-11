@@ -4,7 +4,7 @@ import userRoute from "./routes/user.js";
 import stockRoute from "./routes/stock.js";
 import cors from 'cors';
 
-const PORT = 3000 || 5000;
+const PORT = 5000;
 
 const app = express();
 
