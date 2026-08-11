@@ -146,8 +146,6 @@ const getAllUserInfo = (req, res) => {
     return fullStore;
   });
 
-  console.log(storeItems);
-
   if(!storeItems) {
     res.send({
       statusCode: 400,

@@ -1,0 +1,1 @@
+Create a stocks database to hold the id of each stores and also another db for each item so when you want to read the details or items in the file, it will be quite easy to read.
