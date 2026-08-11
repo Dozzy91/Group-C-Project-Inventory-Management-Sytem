@@ -1,13 +1,25 @@
 {
-  "name": "search-api-module",
+  "name": "inventory-management-system",
   "version": "1.0.0",
-  "description": "Standard modular and beginner friendly Express.js Search API module",
-  "main": "server.js",
+  "description": "This helps clients manage their products, stocks, and also their store",
+  "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Dozzy91/Group-C-Project-Inventory-Management-Sytem.git"
+  },
+  "author": "Group C",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Dozzy91/Group-C-Project-Inventory-Management-Sytem/issues"
+  },
+  "homepage": "https://github.com/Dozzy91/Group-C-Project-Inventory-Management-Sytem#readme",
   "dependencies": {
-    "express": "^4.19.2"
+    "express": "^5.2.1",
+    "nanoid": "^5.1.16"
   }
 }
