@@ -19,5 +19,11 @@
     "password": "cbxcjbc",
     "id": 2,
     "store": []
+  },
+  {
+    "id": 3,
+    "userName": "David Uwakwe",
+    "password": "dav123",
+    "store": []
   }
 ]

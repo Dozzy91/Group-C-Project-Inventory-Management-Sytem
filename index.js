@@ -2,10 +2,13 @@ import http from "http";
 import express from "express";
 import userRoute from "./routes/user.js";
 import stockRoute from "./routes/stock.js";
+import cors from 'cors';
 
 const PORT = 3000;
 
 const app = express();
+
+app.use(cors());
 
 app.use(express.json());
 
