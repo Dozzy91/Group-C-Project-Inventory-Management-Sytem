@@ -1,5 +1,9 @@
+import bcrypt from "bcryptjs";
 import { writeToDatabase, readFromDatabase } from "../utils/fileOperations.js";
+import { ACCESS_TOKEN_COOKIE, accessTokenCookieOptions } from "../utils/token.js";
 import path from "path";
+
+const SALT_ROUNDS = 10;
 
 const pathToUsersDb = new URL("../data/users.json", import.meta.url);
 const pathToInventoryDb = new URL("../data/inventory.json", import.meta.url);
@@ -11,7 +15,7 @@ function userIdGenerator(userArray) {
   return userId + 1;
 }
 
-const createUser = (req, res) => {
+const createUser = async (req, res) => {
   if (!req.body) {
     res.send({
       statusCode: 400,
@@ -33,29 +37,33 @@ const createUser = (req, res) => {
 
   const usersDB = readFromDatabase(pathToUsersDb);
 
-  // const storeExist = usersDB.find((user) => user.storeName === data.storeName);
+  // const nameTaken = usersDB.find(
+  //   (user) => user.userName.toLowerCase() === data.userName.toLowerCase(),
+  // );
 
-//   if (storeExist) {
-//     res.send({
-//       statusCode: 400,
-//       message: "This store name is already taken.",
-//     });
+  // if (nameTaken) {
+  //   res.send({
+  //     statusCode: 400,
+  //     message: "This shop owner name is already taken.",
+  //   });
 
-//     return;
-//   }
+  //   return;
+  // }
 
   const generatedId = userIdGenerator(usersDB);
 
-  const userObject = {
-    id: generatedId,
-    userName: data.userName,
-    password: data.password,
-    store: new Array(),
-  };
-
-  usersDB.push(userObject);
-
   try {
+    const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS);
+
+    const userObject = {
+      id: generatedId,
+      userName: data.userName,
+      password: hashedPassword,
+      store: new Array(),
+    };
+
+    usersDB.push(userObject);
+
     writeToDatabase(usersDB, pathToUsersDb);
     res.send({
       statusCode: 201,
@@ -74,10 +82,11 @@ const createUser = (req, res) => {
 const getAllUsers = (req, res) => {
   try {
     const users = readFromDatabase(pathToUsersDb);
+    const safeUsers = users.map(({ password, ...rest }) => rest);
     res.send({
       statusCode: 200,
-      data: users,
-      totalUsers: users.length,
+      data: safeUsers,
+      totalUsers: safeUsers.length,
     });
   } catch (err) {
     console.log(err);
@@ -107,9 +116,11 @@ const searchUser =  (req, res) => {
     return;
   }
 
+  const { password, ...safeUser } = user;
+
   res.send({
       statusCode: 200,
-      user: user
+      user: safeUser
     });
 };
 
@@ -169,9 +180,9 @@ const getAllUserInfo = (req, res) => {
 
 };
 
-// edit user
-const editUser =  (req, res) => {
-  const userId = Number(req.params.id);
+// edit user - identity comes from the verified access token, not the URL
+const editUser = async (req, res) => {
+  const userId = req.user.id;
 
   const users = readFromDatabase(pathToUsersDb);
 
@@ -188,16 +199,7 @@ const editUser =  (req, res) => {
     return;
   }
 
-  
-  if(req.body.userName && req.body.password ){
-    user.userName = req.body.userName;
-    user.password = req.body.password;
-  }
-  else if (req.body.userName) {
-    user.userName = req.body.userName;
-  } else if (req.body.password) {
-    user.password = req.body.password;
-  } else {
+  if (!req.body.userName && !req.body.password) {
     res.send({
       statusCode: 400,
       message: "No valid fields to update",
@@ -206,14 +208,38 @@ const editUser =  (req, res) => {
     return;
   }
 
-  // Save the updated student data back to the database
+  if (req.body.userName) {
+    const nameTaken = users.find(
+      (u) =>
+        u.id !== userId &&
+        u.userName.toLowerCase() === req.body.userName.toLowerCase(),
+    );
+
+    if (nameTaken) {
+      res.send({
+        statusCode: 400,
+        message: "This shop owner name is already taken.",
+      });
+
+      return;
+    }
+
+    user.userName = req.body.userName;
+  }
+
   try {
-    writeToDatabase(users, pathToUsersDb)
+    if (req.body.password) {
+      user.password = await bcrypt.hash(req.body.password, SALT_ROUNDS);
+    }
+
+    writeToDatabase(users, pathToUsersDb);
+
+    const { password, ...safeUser } = user;
 
     res.send({
       statusCode: 200,
       message: "User updated successfully",
-      data: user,
+      data: safeUser,
     });
   } catch (err) {
     console.log(err);
@@ -225,10 +251,10 @@ const editUser =  (req, res) => {
 };
 
 
-// delete user
+// delete user - identity comes from the verified access token, not the URL
 const deleteUser = (req, res) => {
-  const userId = Number(req.params.id);
-  
+  const userId = req.user.id;
+
   const users = readFromDatabase(pathToUsersDb);
 
   const userIndex = users.findIndex(
@@ -250,6 +276,13 @@ const deleteUser = (req, res) => {
   try {
     writeToDatabase(users, pathToUsersDb)
 
+    res.clearCookie(ACCESS_TOKEN_COOKIE, {
+      httpOnly: accessTokenCookieOptions.httpOnly,
+      secure: accessTokenCookieOptions.secure,
+      sameSite: accessTokenCookieOptions.sameSite,
+      path: accessTokenCookieOptions.path,
+    });
+
     res.send({
       statusCode: 200,
       message: "User deleted successfully",
@@ -262,4 +295,29 @@ const deleteUser = (req, res) => {
   }
 };
 
-export { createUser, getAllUsers, searchUser, editUser, deleteUser, getAllUserInfo };
+// returns the identity of whoever the access token cookie belongs to -
+// the frontend can't read the httpOnly cookie itself, so it calls this
+// on load to know whether it's logged in and as whom.
+const getMe = (req, res) => {
+  const users = readFromDatabase(pathToUsersDb);
+
+  const user = users.find((u) => u.id === req.user.id);
+
+  if (!user) {
+    res.send({
+      statusCode: 404,
+      message: "User not found",
+    });
+
+    return;
+  }
+
+  const { password, ...safeUser } = user;
+
+  res.send({
+    statusCode: 200,
+    data: safeUser,
+  });
+};
+
+export { createUser, getAllUsers, searchUser, editUser, deleteUser, getAllUserInfo, getMe };

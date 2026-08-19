@@ -1,42 +1,34 @@
-import path from "path";
-import { readFromDatabase } from "../utils/fileOperations.js";
+import { verifyAccessToken, ACCESS_TOKEN_COOKIE } from "../utils/token.js";
 
-const pathToUsersDb = new URL("../data/users.json", import.meta.url);
-
+// Verifies the signed access token sent via httpOnly cookie and attaches
+// the decoded user ({ id, userName }) to req.user for downstream handlers.
 const authMiddleware = (req, res, next) => {
-  const { id, password } = req.params;
+  const token = req.cookies?.[ACCESS_TOKEN_COOKIE];
 
-  if (!id || !password) {
-    res.send({
-      statusCode: 404,
-      message: "Credentials Missing",
+  if (!token) {
+    res.status(401).send({
+      statusCode: 401,
+      message: "Not authenticated. Please log in.",
     });
-
     return;
   }
 
   try {
-    const users = readFromDatabase(pathToUsersDb);
-
-    const user = users.find(
-      (user) => user.id === Number(id) && user.password === password,
-    );
-
-    if (!user) {
-      res.send({
-        statusCode: 400,
-        message: "Invaid credentials",
+    const decoded = verifyAccessToken(token);
+    req.user = { id: decoded.id, userName: decoded.userName };
+    next();
+  } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      res.status(401).send({
+        statusCode: 401,
+        message: "Session expired. Please log in again.",
       });
       return;
     }
 
-    // if successful hand over authority to the next process
-    next();
-  } catch (error) {
-    console.log(error);
-    res.send({
-      statusCode: 500,
-      message: "Failed to authorize user",
+    res.status(401).send({
+      statusCode: 401,
+      message: "Invalid session. Please log in again.",
     });
   }
 };

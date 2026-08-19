@@ -23,7 +23,12 @@
   {
     "id": 3,
     "userName": "David Uwakwe",
-    "password": "dav123",
-    "store": []
+    "password": "$2a$10$JCJk/jmFpNT4PnP2mGM7H.FEPlhXAJk6iBn49pjwuM131tW4MFvAm",
+    "store": [
+      {
+        "storeId": 3,
+        "storeName": "Dave Autos"
+      }
+    ]
   }
 ]

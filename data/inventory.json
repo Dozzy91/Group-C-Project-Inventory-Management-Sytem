@@ -46,5 +46,41 @@
     "storeId": 2,
     "storeName": "Chika's Automobile Store",
     "items": []
+  },
+  {
+    "storeId": 3,
+    "storeName": "Dave Autos",
+    "items": [
+      {
+        "id": "tDYHAYoo94DB7eALS0G77",
+        "itemName": "Crank Shaft",
+        "category": "Transmission",
+        "price": 170000,
+        "quantity": 8,
+        "supplier": "Larry Autos",
+        "createdAt": "2026-08-18",
+        "updatedAt": "2026-08-18"
+      },
+      {
+        "id": "-g002va6QQjRyn6TuNsPL",
+        "itemName": "Oil Filter",
+        "category": "FIlters",
+        "price": 8000,
+        "quantity": 2,
+        "supplier": "BAS",
+        "createdAt": "2026-08-18",
+        "updatedAt": "2026-08-18"
+      },
+      {
+        "id": "xJNDfcbD79ZFr0qDLCK8D",
+        "itemName": "Fuel Filter",
+        "category": "Combustion",
+        "price": 3000,
+        "quantity": 8,
+        "supplier": "Adac",
+        "createdAt": "2026-08-18",
+        "updatedAt": "2026-08-18"
+      }
+    ]
   }
 ]

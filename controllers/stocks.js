@@ -1,9 +1,9 @@
 import { nanoid } from "nanoid";
 import { writeToDatabase, readFromDatabase } from "../utils/fileOperations.js";
-import path from "path";
 
 const pathToInventoryDb = new URL("../data/inventory.json", import.meta.url);
 const pathToUsersDb = new URL("../data/users.json", import.meta.url);
+const pathToOrdersDb = new URL("../data/orders.json", import.meta.url);
 
 const stockIdGenerator = () => {
   const stockId = nanoid();
@@ -17,24 +17,17 @@ const storeIdGenerator = (storeArray) => {
   return storeId + 1;
 };
 
-// future update
-// function authoriseUser(req, res) {
-//     const usersDb = readFromDatabase(pathToUsersDb);
-//     const isValid = usersDb.find(
-//     (connection) => connection.store.some(
-//       (store) => store.storeName === oldStoreName
-//     ) && connection.password === password && connection.id === Number(id)
-//   )
-
-//   if(!isValid){
-//     res.send({
-//         statusCode: 400,
-//         message: "Not Authorised"
-//     });
-
-//     return;
-//   }
-// }
+// Confirms the authenticated user (from the verified JWT) owns the store
+// named `storeName`. Replaces the old id/password-in-the-URL check.
+function userOwnsStore(usersDb, userId, storeName) {
+  return usersDb.find(
+    (connection) =>
+      connection.id === userId &&
+      connection.store.some(
+        (store) => store.storeName.toLowerCase() === storeName.toLowerCase(),
+      ),
+  );
+}
 
 const createStore = (req, res) => {
   if (!req.body) {
@@ -45,8 +38,6 @@ const createStore = (req, res) => {
 
     return;
   }
-
-  const { id, password } = req.params;
 
   const data = req.body;
 
@@ -64,7 +55,7 @@ const createStore = (req, res) => {
   const stocksDb = readFromDatabase(pathToInventoryDb);
 
   const storeExist = stocksDb.find(
-    (store) => store.storeName === data.storeName,
+    (store) => store.storeName.toLowerCase() === data.storeName.toLowerCase(),
   );
 
   if (storeExist) {
@@ -86,9 +77,16 @@ const createStore = (req, res) => {
     items: new Array(),
   };
 
-  const user = usersDb.find(
-    (user) => user.id === Number(id) && user.password === password,
-  );
+  const user = usersDb.find((user) => user.id === req.user.id);
+
+  if (!user) {
+    res.send({
+      statusCode: 404,
+      message: "User not found",
+    });
+
+    return;
+  }
 
   user.store.push(userStoreObject);
 
@@ -177,19 +175,14 @@ const editStore = (req, res) => {
     return;
   }
 
-  const { id, password, oldStoreName } = req.params;
+  const { oldStoreName } = req.params;
   const { storeName } = req.body;
 
   const usersDb = readFromDatabase(pathToUsersDb);
   const inventoryDb = readFromDatabase(pathToInventoryDb);
 
-  //   make sure user edits only their store
-  const isValid = usersDb.find(
-    (connection) =>
-      connection.store.some((store) => store.storeName.toLowerCase() === oldStoreName.toLowerCase()) &&
-      connection.password === password &&
-      connection.id === Number(id),
-  );
+  //   make sure user edits only their own store
+  const isValid = userOwnsStore(usersDb, req.user.id, oldStoreName);
 
   if (!isValid) {
     res.send({
@@ -224,21 +217,7 @@ const editStore = (req, res) => {
     return;
   }
 
-  // get the store name from the user store and ready it for manipulation
-  const userStore = usersDb.find((query) =>
-    query.store.some((store) => store.storeName.toLowerCase() === oldStoreName.toLowerCase()),
-  );
-
-  if (!userStore) {
-    res.send({
-      statusCode: 404,
-      message: "Store not found",
-    });
-
-    return;
-  }
-
-  const storeToUpdate = userStore.store.find(
+  const storeToUpdate = isValid.store.find(
     (store) => store.storeName.toLowerCase() === oldStoreName.toLowerCase(),
   );
 
@@ -274,7 +253,7 @@ const editStore = (req, res) => {
 };
 
 const deleteStore = (req, res) => {
-  const { id, password, storeName } = req.params;
+  const { storeName } = req.params;
 
   const usersDb = readFromDatabase(pathToUsersDb);
   const inventoryDb = readFromDatabase(pathToInventoryDb);
@@ -289,13 +268,8 @@ const deleteStore = (req, res) => {
     return;
   }
 
-  //   make sure user only edits only their store
-  const isValid = usersDb.find(
-    (connection) =>
-      connection.store.some((store) => store.storeName.toLowerCase() === storeName.toLowerCase()) &&
-      connection.password === password &&
-      connection.id === Number(id),
-  );
+  //   make sure user only deletes their own store
+  const isValid = userOwnsStore(usersDb, req.user.id, storeName);
 
   if (!isValid) {
     res.send({
@@ -349,14 +323,7 @@ const createItem = (req, res) => {
 
   const usersDb = readFromDatabase(pathToUsersDb);
 
-  const { id, password } = req.params;
-
-  const isValid = usersDb.find(
-    (connection) =>
-      connection.store.some((store) => store.storeName.toLowerCase() === data.storeName.toLowerCase()) &&
-      connection.password === password &&
-      connection.id === Number(id),
-  );
+  const isValid = userOwnsStore(usersDb, req.user.id, data.storeName || "");
 
   if (!isValid) {
     res.send({
@@ -505,7 +472,7 @@ const searchItem = (req, res) => {
 };
 
 const editItem = (req, res) => {
-  const { id, password, storeName, itemId } = req.params;
+  const { storeName, itemId } = req.params;
 
   if (!req.body) {
     res.send({
@@ -530,12 +497,7 @@ const editItem = (req, res) => {
     return;
   }
 
-  const isValid = usersDb.find(
-    (connection) =>
-      connection.store.some((store) => store.storeName.toLowerCase() === storeName.toLowerCase()) &&
-      connection.password === password &&
-      connection.id === Number(id),
-  );
+  const isValid = userOwnsStore(usersDb, req.user.id, storeName);
 
   if (!isValid) {
     res.send({
@@ -598,16 +560,11 @@ const editItem = (req, res) => {
 };
 
 const deleteItem = (req, res) => {
-  const { id, password, storeName, itemId } = req.params;
+  const { storeName, itemId } = req.params;
 
   const usersDb = readFromDatabase(pathToUsersDb);
 
-  const isAuthorized = usersDb.find(
-    (connection) =>
-      connection.store.some((store) => store.storeName.toLowerCase() === storeName.toLowerCase()) &&
-      connection.password === password &&
-      connection.id === Number(id),
-  );
+  const isAuthorized = userOwnsStore(usersDb, req.user.id, storeName);
 
   if (!isAuthorized) {
     res.send({
@@ -631,9 +588,7 @@ const deleteItem = (req, res) => {
     return;
   }
 
-  const item = inventory.find((i) =>
-    i.items.some((items) => items.id === itemId),
-  );
+  const item = store.items.find((items) => items.id === itemId);
 
   if (!item) {
     res.send({
@@ -654,6 +609,197 @@ const deleteItem = (req, res) => {
   });
 };
 
+// Retrieve (withdraw/sell) one or more items from a store's stock in a
+// single batch/order. Every line is validated against current stock
+// *before* anything is written, so a batch either fully succeeds or fully
+// fails - no partial stock deductions if line 3 of 5 runs out mid-way.
+// Each successful batch is logged to orders.json as a retrieval record
+// (order id, store, the item ids + quantities taken, and a timestamp) so
+// it can be looked up later as retrieval history.
+const retrieveItems = (req, res) => {
+  const { storeName } = req.params;
+  const requestedLines = Array.isArray(req.body?.items) ? req.body.items : [];
+
+  if (requestedLines.length === 0) {
+    res.send({
+      statusCode: 400,
+      message: "Add at least one item to retrieve",
+    });
+
+    return;
+  }
+
+  const usersDb = readFromDatabase(pathToUsersDb);
+
+  const isAuthorized = userOwnsStore(usersDb, req.user.id, storeName);
+
+  if (!isAuthorized) {
+    res.send({
+      statusCode: 400,
+      message: "Not Authorised",
+    });
+
+    return;
+  }
+
+  const inventory = readFromDatabase(pathToInventoryDb);
+
+  const store = inventory.find(
+    (store) => store.storeName.toLowerCase() === storeName.toLowerCase(),
+  );
+
+  if (!store) {
+    res.send({
+      statusCode: 404,
+      message: "Store not found",
+    });
+
+    return;
+  }
+
+  // First pass: resolve + validate every line without mutating anything.
+  const resolvedLines = [];
+  const seenItemIds = new Set();
+
+  for (const line of requestedLines) {
+    const itemId = line?.itemId;
+    const quantityRequested = Number(line?.quantity);
+
+    const item = store.items.find((i) => i.id === itemId);
+
+    if (!item) {
+      res.send({
+        statusCode: 404,
+        message: "One of the selected items could not be found",
+      });
+
+      return;
+    }
+
+    if (seenItemIds.has(itemId)) {
+      res.send({
+        statusCode: 400,
+        message: `"${item.itemName}" was added more than once - combine it into a single line`,
+      });
+
+      return;
+    }
+    seenItemIds.add(itemId);
+
+    if (!Number.isFinite(quantityRequested) || quantityRequested <= 0) {
+      res.send({
+        statusCode: 400,
+        message: `Enter a quantity greater than zero for "${item.itemName}"`,
+      });
+
+      return;
+    }
+
+    if (quantityRequested > item.quantity) {
+      res.send({
+        statusCode: 400,
+        message: `Only ${item.quantity} of "${item.itemName}" in stock. Cannot retrieve ${quantityRequested}.`,
+      });
+
+      return;
+    }
+
+    resolvedLines.push({ item, quantity: quantityRequested });
+  }
+
+  // Second pass: everything validated, safe to apply.
+  const retrievedAt = new Date().toISOString();
+
+  for (const { item, quantity } of resolvedLines) {
+    item.quantity -= quantity;
+    item.updatedAt = retrievedAt.slice(0, 10);
+  }
+
+  const ordersDb = readFromDatabase(pathToOrdersDb);
+
+  const order = {
+    orderId: stockIdGenerator(),
+    storeName: store.storeName,
+    items: resolvedLines.map(({ item, quantity }) => ({
+      itemId: item.id,
+      quantity,
+    })),
+    retrievedAt,
+  };
+
+  ordersDb.push(order);
+
+  try {
+    writeToDatabase(inventory, pathToInventoryDb);
+    writeToDatabase(ordersDb, pathToOrdersDb);
+
+    res.send({
+      statusCode: 200,
+      message: `Retrieved ${resolvedLines.length} item${resolvedLines.length === 1 ? "" : "s"}`,
+      data: { order, items: resolvedLines.map(({ item }) => item) },
+    });
+  } catch (err) {
+    console.log(err);
+    res.send({
+      statusCode: 500,
+      message: "Failed to update stock",
+    });
+  }
+};
+
+// Retrieval history for a store, newest first. Each order's item ids are
+// resolved against the store's *current* item list so the history can
+// show a name, if an item was since deleted, itemName comes back null
+// and the frontend falls back to showing the bare id.
+const getOrderHistory = (req, res) => {
+  const { storeName } = req.params;
+
+  const usersDb = readFromDatabase(pathToUsersDb);
+
+  const isAuthorized = userOwnsStore(usersDb, req.user.id, storeName);
+
+  if (!isAuthorized) {
+    res.send({
+      statusCode: 400,
+      message: "Not Authorised",
+    });
+
+    return;
+  }
+
+  const inventory = readFromDatabase(pathToInventoryDb);
+  const store = inventory.find(
+    (store) => store.storeName.toLowerCase() === storeName.toLowerCase(),
+  );
+
+  const ordersDb = readFromDatabase(pathToOrdersDb);
+
+  const orders = ordersDb
+    .filter((order) => order.storeName.toLowerCase() === storeName.toLowerCase())
+    .map((order) => ({
+      orderId: order.orderId,
+      retrievedAt: order.retrievedAt,
+      items: order.items.map(({ itemId, quantity }) => {
+        const currentItem = store?.items.find((i) => i.id === itemId);
+        const price = currentItem ? Number(currentItem.price) : null;
+        return {
+          itemId,
+          quantity,
+          itemName: currentItem ? currentItem.itemName : null,
+          price,
+          lineTotal: price != null ? price * quantity : null,
+        };
+      }),
+    }))
+    .sort((a, b) => new Date(b.retrievedAt) - new Date(a.retrievedAt));
+
+  res.send({
+    statusCode: 200,
+    data: orders,
+  });
+};
+
+
 export {
   createStore,
   getAllStores,
@@ -666,4 +812,6 @@ export {
   searchItem,
   editItem,
   deleteItem,
+  retrieveItems,
+  getOrderHistory,
 };

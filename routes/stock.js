@@ -10,7 +10,9 @@ import {
   getAllStoreItems,
   searchItem,
   editItem,
-  deleteItem
+  deleteItem,
+  retrieveItems,
+  getOrderHistory,
 } from "../controllers/stocks.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 
@@ -19,17 +21,21 @@ const stockRoute = express.Router();
 stockRoute.get("/get_all_stores", getAllStores);
 stockRoute.get("/get_store/:storeName", getStore);
 stockRoute.get("/search_store/:query", searchStores);
-stockRoute.post("/create_store/:id/:password", authMiddleware, createStore);
-stockRoute.patch("/edit_store/:id/:password/:oldStoreName", authMiddleware, editStore);
-stockRoute.delete("/delete_store/:id/:password/:storeName", authMiddleware, deleteStore);
+stockRoute.post("/create_store", authMiddleware, createStore);
+stockRoute.patch("/edit_store/:oldStoreName", authMiddleware, editStore);
+stockRoute.delete("/delete_store/:storeName", authMiddleware, deleteStore);
 
 
 // items
 stockRoute.get("/get_all_store_items/:storeName", getAllStoreItems);
 stockRoute.get("/search_item/:storeName/:itemName", searchItem);
-stockRoute.post("/create_item/:id/:password", authMiddleware, createItem);
-stockRoute.patch("/edit_item/:id/:password/:storeName/:itemId", authMiddleware, editItem);
-stockRoute.delete("/delete_item/:id/:password/:storeName/:itemId", authMiddleware, deleteItem);
+stockRoute.post("/create_item", authMiddleware, createItem);
+stockRoute.patch("/edit_item/:storeName/:itemId", authMiddleware, editItem);
+stockRoute.delete("/delete_item/:storeName/:itemId", authMiddleware, deleteItem);
+
+// batch retrieval (withdraw/sell stock) + history
+stockRoute.post("/retrieve_items/:storeName", authMiddleware, retrieveItems);
+stockRoute.get("/order_history/:storeName", authMiddleware, getOrderHistory);
 
 
 export default stockRoute;
